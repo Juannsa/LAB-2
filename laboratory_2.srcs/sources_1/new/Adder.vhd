@@ -8,7 +8,7 @@ entity Adder is
 
         Generic (La: natural := 8;
                  Lb: natural := 8;
-                 Lo: natural := 10);
+                 Lo: natural := 9);
         
         Port    (
                  dataA: in  std_logic_vector(La - 1 downto 0);
@@ -21,7 +21,7 @@ architecture Behavioral of Adder is
 signal int_add: unsigned(Lo - 1 downto 0) := (others => '0');
 signal dA: unsigned (La - 1 downto 0) ;
 signal dB: unsigned (Lb - 1 downto 0);
-signal fuller: unsigned((Lo-Lb)-1 downto 0) := (others => '0');
+--signal fuller: unsigned((Lo-Lb)-1 downto 0) := (others => '0');
 begin
 
 --int_add <= (fuller & dA) +(fuller & dB);
@@ -31,7 +31,8 @@ dA <= unsigned(dataA);
 dB <= unsigned (dataB);
 end process;
 
-int_add <= resize(dA,int_add'length) + resize(dB,int_add'length);
+int_add <= resize(dA,int_add'length) + resize(dB,int_add'length); --agrega los bits necesarios
+                                                                  -- para hacer la suma.
 
 Add <= std_logic_vector(int_add);
 end Behavioral;

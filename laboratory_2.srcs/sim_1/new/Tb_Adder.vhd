@@ -14,7 +14,7 @@ architecture Behavioral of Tb_Adder is
         
         Generic (La: natural := 8;
                  Lb: natural := 8;
-                 Lo: natural := 10);
+                 Lo: natural := 9);
         
         Port    (
                  dataA: in  std_logic_vector(La - 1 downto 0);
@@ -24,7 +24,7 @@ architecture Behavioral of Tb_Adder is
 
 signal tb_da: std_logic_vector(7 downto 0);
 signal tb_db: std_logic_vector(7 downto 0);
-signal tb_add: std_logic_vector(9 downto 0);
+signal tb_add: std_logic_vector(8 downto 0);
 
 constant clk: time  := 100 ms;
 
