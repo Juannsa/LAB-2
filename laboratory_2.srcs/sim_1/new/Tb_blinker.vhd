@@ -45,6 +45,7 @@ begin
     tbstop <= '1';
     wait for  15 ms;
     tbstop <= '0';
+    tbdo <= '0';
     wait;
     end process;
 

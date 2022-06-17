@@ -26,6 +26,8 @@ begin
        intblink <= '0';
     elsif(Do= act_v) then
     intblink <= not intblink;
+    else 
+    intblink <= '1';
    
     end if;
   end if;
