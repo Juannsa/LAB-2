@@ -38,12 +38,16 @@ begin
     
     data: process
     begin
+    wait until falling_edge(tb_clk);
     tb_address <= "111";
     wait for clk_period*4;
+    wait until falling_edge(tb_clk);
     tb_address <= "011";
     wait for clk_period;
+    wait until falling_edge(tb_clk);
     tb_address <= "000";
     wait for clk_period;
+    wait until falling_edge(tb_clk);
     tb_address <= "100";
     wait;
     end process;
