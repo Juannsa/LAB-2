@@ -18,7 +18,15 @@ component I_ROM is
               data_out: out std_logic_vector (data_length -1 downto 0));
 end component;
 
+component FF_D is
+     Port (
+            clk,rst: in std_logic;
+            D: in std_logic_vector(7 downto 0);
+            Q: out std_logic_vector(7 downto 0));
+end component FF_D;
 
+
+signal FF1,FF2: std_logic_vector(7 downto 0);
 signal tb_clk: std_logic;
 signal tb_address: std_logic_vector(2 downto 0);
 signal tb_dataout: std_logic_vector(7 downto 0);
@@ -26,8 +34,9 @@ signal tb_dataout: std_logic_vector(7 downto 0);
 constant clk_period: time := 10 ms;
 begin
 
-    UUT: I_ROM port map (clk => tb_clk, address =>tb_address,data_out =>tb_dataout);
-    
+    UUT: I_ROM port map (clk => tb_clk, address =>tb_address,data_out =>FF1);
+    FF: FF_D port map (clk=>tb_clk,D=>FF1,Q =>FF2,rst=> '0');
+    tb_dataout <= FF2;
     clkP: process
     begin
     tb_clk <= '1';
