@@ -13,7 +13,7 @@ end Reg;
 
 architecture Behavioral of Reg is
 
-signal qin: std_logic_vector(Qo -1 downto 0);
+signal qin,qold: std_logic_vector(Qo -1 downto 0);
 signal Din: unsigned(Qo -1 downto 0);
 signal Dlp: unsigned (Do -1 downto 0);
 begin
@@ -22,10 +22,12 @@ Din <= resize(Dlp,Din'length);
 process(clk)
 begin
         if(rising_edge(clk)) then
-                
+                qold <= qin;
                 qin <= std_logic_vector(Din);
         end if;
+        
 end process;
 
-q <= qin when (oe = '1') else (others => '0');
+q <= qin when (oe = '1'); 
+
 end Behavioral;

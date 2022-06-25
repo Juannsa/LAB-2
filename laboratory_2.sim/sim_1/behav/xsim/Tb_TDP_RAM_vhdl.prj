@@ -1,7 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../laboratory_2.srcs/sources_1/new/true_dp_bram.vhd" \
-"../../../../laboratory_2.srcs/sim_1/new/Tb_TDP_RAM.vhd" \
-
-# Do not sort compile order
-nosort

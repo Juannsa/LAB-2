@@ -142,15 +142,21 @@ signal ctrl,led: std_logic;
 signal midFF1,midFF2: std_logic_vector(7 downto 0);
 
 --FSM 
-type fsm_states is (idle,busca,suma,captura,grabo,guardoE,Sumi,
+type fsm_states is (idle,busca,suma,suma2,captura,grabo,grabo2,guardoE,guardoE2,Sumi,
                     COMP1);
 signal next_state,state: fsm_states;
 
 constant rsr_act_value: std_logic:= '1';
 
-signal i: unsigned:= "0";
+signal i: natural := 0;
 signal I8: std_logic;
-signal addFirst: unsigned := unsigned(int_addrROM1);
+signal iprima: unsigned (2 downto 0);
+signal addFirst: unsigned (2 downto 0) := unsigned(int_addrROM1);
+signal flag: std_logic;
+type bookaddres is array (7 downto 0) of std_logic_vector (2 downto 0);
+constant book: bookaddres := (0 =>"000",1=>"001",2=>"010",3=>"011",
+                                4=>"100",5=>"101",6=>"110",7=>"111");      
+
 begin
 
 --current logic
@@ -169,25 +175,37 @@ begin
  begin
  case state is
         when idle =>
-                    if (start = '1') then
+                    if (start = '0') then
                         next_state <= idle;
                     else
                         next_state <= busca;
                     end if;
           when busca => 
-                        if (I8 = '0') then
-                        next_state <= suma;
-                        else
+                       
+                        if (I8 = '1') then
                         next_state <= COMP1;
+                        else
+                        next_state <= suma;
                         end if;
+          when suma =>
+                        next_state <= suma2;
+          when suma2 =>
+                        next_state <= captura;
           when captura =>
                         next_state <= grabo;
                         
           when grabo =>
-                        next_state <= guardoE;
                         
+                        
+                        next_state <= grabo2;
+           when grabo2 =>
+                        next_state <= guardoE;
            when guardoE =>
+                            next_state <= guardoE2;
+           when guardoE2 =>
                            next_state <= Sumi;
+           when Sumi =>
+                         next_state <= busca;
                            
             when others =>  next_state <= idle;
  end case;
@@ -197,40 +215,57 @@ begin
  begin
     oe1 <= '0'; oe2 <= '0';oe3 <= '0'; oe4 <= '0'; oe5 <= '0'; oe6 <= '0';oe7 <= '0';
     pulse <= '0'; I8<= '0';
-    wea <= '0';web <='0';ena <= '0'; enb <= '0';
+    wea <= '0';web <='0';ena <= '0'; enb <= '0';flag <= '0';
           --if (rst = rst_act_value) then
       case state is
       
         when idle =>
                     int_addrROM1 <= "000";
                     pulse <= '0';
-                    i <= (others=>'0');
+                    i <= 0;
         when busca =>
             
+            int_addrROM1 <= book(i);
+          --  iprima <=to_unsigned(i,iprima'length);
+           -- addFirst <= addFirst + (iprima);
+           -- int_addrROM1 <= std_logic_vector(addFirst);
+            flag <= '1';
             
-            addFirst <= addFirst + (i);
-            int_addrROM1 <= std_logic_vector(addFirst);
-            oe1 <= '1';oe2 <= '1';oe3 <= '1';
         
+        when suma => 
+                    oe1 <= '1';oe2 <= '1';oe3 <= '1';
+        when suma2 =>
+        oe1 <= '1';oe2 <= '1';oe3 <= '1';
+                    
         when captura =>
                     oe4 <= '1';
                     
         when grabo =>
                 ena <= '1';
                 wea <= '1';
-                
+                oe4 <= '0';
+        when grabo2 =>
+                ena <= '1';
+                wea <= '1';
+                oe4 <= '0';
         when guardoE =>
                   
                   enb <= '1';
                   web <= '1';
                   oe7 <= '1';
+        when guardoE2 =>
+                    enb <= '1';
+                  web <= '1';
+                  oe7 <= '1';
         when Sumi =>
-                i <= i + "1";
+               
                 if (i = 8) then
                     I8 <= '1';
-                end if;
+                else
+                 i <= i + 1;
+                 end if;
         
-                     
+          when others => null;      
                     
             
             
@@ -275,10 +310,10 @@ REG4: Reg
     port map (clk=>clk, D=>addout2,oe =>oe4,Q=> Final_Add);
     
 TDP_BRAM: true_dp_bram port map (clk_a=>clk,clk_b=>clk,
-                                 addr_a => addT,we_a =>wea,
+                                 addr_a => int_addr_IPROM,we_a =>wea,
                                   en_a => ena,data_a =>Final_Add,
                                   q_a =>outA,
-                                  addr_b => addT,we_b =>web,
+                                  addr_b => int_addr_IPROM,we_b =>web,
                                   en_b => enb,data_b =>true_data,
                                   q_b =>outB);
 REG5: Reg
@@ -290,7 +325,7 @@ REG6: Reg
     port map (clk=>clk, D=>OUTB,oe =>oe6,Q=> REGB);                                 
 
 TrueV: TrueValues_ROM port map 
-                            (clk=>clk,address=>true_addr,data_out=>tmp);
+                            (clk=>clk,address=>int_addrROM1,data_out=>tmp);
 
 REG7: Reg
     generic map (Do=>10,Qo=>10)

@@ -1,6 +1,0 @@
-# compile vhdl design source files
-vhdl xil_defaultlib  \
-"../../../../laboratory_2.srcs/sim_1/new/Tb_IPROM.vhd" \
-
-# Do not sort compile order
-nosort
