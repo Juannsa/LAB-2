@@ -15,15 +15,17 @@ component Main_Top is
             rst: in std_logic;
             start: in std_logic;
             stop: in std_logic;
-            pulse: out std_logic);
+            pulse: out std_logic;
+            pulse2: out std_logic);
 end component;
 
-signal clk,rst,start,stop,pulse: std_logic:= '0';
+signal clk,rst,start,stop,pulse,pulse2: std_logic:= '0';
 constant clk_period: time := 10 ms;
 
 begin
 
-UUT: Main_Top port map (clk =>clk,rst=>rst,start=>start,stop=>stop,pulse=>pulse);
+UUT: Main_Top port map (clk =>clk,rst=>rst,start=>start,stop=>stop,pulse=>pulse,
+                        pulse2=>pulse2);
 
 clkP:process
 begin
@@ -38,7 +40,13 @@ end process;
             start <= '0';
             wait for clk_period;
             start <= '1';
+              wait for clk_period*2;
+              start <= '0';
             wait for clk_period*20;
+            wait for 1240 ms;
+            stop <= '1';
+            wait for clk_period*2;
+            stop <= '1';
             wait;
         end process;
 

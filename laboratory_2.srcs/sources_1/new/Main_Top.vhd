@@ -8,7 +8,8 @@ entity Main_Top is
             rst: in std_logic;
             start: in std_logic;
             stop: in std_logic;
-            pulse: out std_logic);
+            pulse: out std_logic;
+            pulse2: out std_logic);
 end Main_Top;
 
 architecture Behavioral of Main_Top is
@@ -143,22 +144,23 @@ signal midFF1,midFF2: std_logic_vector(7 downto 0);
 
 --FSM 
 type fsm_states is (idle,busca,suma,suma2,captura,grabo,grabo2,guardoE,guardoE2,Sumi,Sumi2,
-                    COMP1);
+                    COMP1,comp2,comp3,dist,iguales,masaddr);
 signal next_state,state: fsm_states;
 
 constant rsr_act_value: std_logic:= '1';
 
 
 signal I8: std_logic:= '0';
-signal iprima: unsigned (2 downto 0);
-signal addFirst: unsigned (2 downto 0) := unsigned(int_addrROM1);
+
+
 signal flag: std_logic;
 type bookaddres is array (7 downto 0) of std_logic_vector (2 downto 0);
 constant book: bookaddres := (0 =>"000",1=>"001",2=>"010",3=>"011",
                                 4=>"100",5=>"101",6=>"110",7=>"111"); 
                                 
  signal copyCounter: natural; 
-    
+ signal flagDistinto: std_logic:= '0';
+ --signal intpulse: std_logic:= '0';
 
 begin
 
@@ -174,7 +176,7 @@ begin
  end process current;
  
 --next state
- nextP: process (state,start)
+ nextP: process (state,start,stop)
  begin
  case state is
         when idle =>
@@ -212,10 +214,36 @@ begin
            
           when Sumi2 =>
                         next_state <= busca;
-                      
-              when comp1 =>
-              next_state <= comp1;        
-                           
+          
+          when comp1 =>
+                    next_state <= comp2;       
+          
+          when comp2 =>
+                
+                next_state <= comp3;
+                
+            when comp3 =>
+            if (flagdistinto = '1') then
+              next_state <= dist;        
+                else
+                next_state <= iguales;
+                end if;
+                
+            when dist =>
+                          if (stop = '1')then
+                          next_state <= masaddr;
+                          else
+                          next_state <= dist;
+                          end if;
+             when iguales =>
+                        next_state <= masaddr;
+                        
+              when masaddr =>             
+                           if (Copycounter +1 = 8) then
+                           next_state <= idle;
+                           else
+                           next_state <= comp1;
+                           end if;
             when others =>  next_state <= idle;
  end case;
  end process;
@@ -223,9 +251,10 @@ begin
  outputlogic: process(clk,rst)
  variable counter: integer range 0 to 7;
  variable counterr: natural:= 0;
+ variable intpulse: std_logic:= '0';
  begin
     oe1 <= '0'; oe2 <= '0';oe3 <= '0'; oe4 <= '0'; oe5 <= '0'; oe6 <= '0';oe7 <= '0';
-    pulse <= '0'; I8<= '0';
+     I8<= '0';pulse2 <= '0';
     wea <= '0';web <='0';ena <= '0'; enb <= '0';flag <= '0';
           --if (rst = rst_act_value) then
       case state is
@@ -285,9 +314,46 @@ begin
                     end if;       
 
          when comp1 =>
-                    pulse <= '1' 
-                              ;
+        
+                    ena <= '1';
+                    enb <= '1';
+                    int_addrROM1 <= book(counterr);
+                  
+                  
                     
+                  
+        when comp2 =>    
+                    
+                     
+                    if (outA = outB) then
+                        flagDistinto <= '0';
+                    else
+                         flagDistinto <= '1';
+                    end if;
+                  
+          when comp3 =>
+                            null;
+                              
+        when dist =>
+                        
+                       intpulse := not intpulse;
+                        pulse <= intpulse;
+         when iguales =>
+         
+                    for k in 0 to 7 loop
+                        pulse2 <= '1';
+                    end loop;     
+           when masaddr=>
+                  
+                  if (rising_edge(clk)) then
+                  counterr := counterr +1;
+                  copyCounter <= counterr;
+                  end if;
+                  
+                  if (counterr = 8) then
+                  I8 <= '1';
+                  
+                  end if;
                     
           when others => null;      
                     
@@ -358,5 +424,5 @@ REG7: Reg
 Comp: Comparator port map                                              
                         (dataA=>REGA,dataB=>REGB,rst=>rst,ctrl=>ctrl,led=>led);
 
-Blink: Blinker port map (Do=>led,clk=>clk,Stop=>Stop,lblink=>pulse);
+Blink: Blinker port map (Do=>led,clk=>clk,Stop=>Stop,lblink=>open);
 end Behavioral;
