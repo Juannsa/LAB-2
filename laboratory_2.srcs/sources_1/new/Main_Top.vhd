@@ -133,7 +133,7 @@ signal outA,outB: std_logic_vector(9 downto 0);
 signal REGA,REGB: std_logic_vector(9 downto 0);
 
 --signals true values
-signal true_addr: std_logic_vector(2 downto 0);
+
 signal true_data: std_logic_vector(9 downto 0);
 signal tmp: std_logic_vector(9 downto 0);
 
@@ -142,20 +142,23 @@ signal ctrl,led: std_logic;
 signal midFF1,midFF2: std_logic_vector(7 downto 0);
 
 --FSM 
-type fsm_states is (idle,busca,suma,suma2,captura,grabo,grabo2,guardoE,guardoE2,Sumi,
+type fsm_states is (idle,busca,suma,suma2,captura,grabo,grabo2,guardoE,guardoE2,Sumi,Sumi2,
                     COMP1);
 signal next_state,state: fsm_states;
 
 constant rsr_act_value: std_logic:= '1';
 
-signal i: natural := 0;
-signal I8: std_logic;
+
+signal I8: std_logic:= '0';
 signal iprima: unsigned (2 downto 0);
 signal addFirst: unsigned (2 downto 0) := unsigned(int_addrROM1);
 signal flag: std_logic;
 type bookaddres is array (7 downto 0) of std_logic_vector (2 downto 0);
 constant book: bookaddres := (0 =>"000",1=>"001",2=>"010",3=>"011",
-                                4=>"100",5=>"101",6=>"110",7=>"111");      
+                                4=>"100",5=>"101",6=>"110",7=>"111"); 
+                                
+ signal copyCounter: natural; 
+    
 
 begin
 
@@ -205,13 +208,21 @@ begin
            when guardoE2 =>
                            next_state <= Sumi;
            when Sumi =>
-                         next_state <= busca;
+                        next_state <= sumi2;
+           
+          when Sumi2 =>
+                        next_state <= busca;
+                      
+              when comp1 =>
+              next_state <= comp1;        
                            
             when others =>  next_state <= idle;
  end case;
  end process;
 -- output logic
  outputlogic: process(clk,rst)
+ variable counter: integer range 0 to 7;
+ variable counterr: natural:= 0;
  begin
     oe1 <= '0'; oe2 <= '0';oe3 <= '0'; oe4 <= '0'; oe5 <= '0'; oe6 <= '0';oe7 <= '0';
     pulse <= '0'; I8<= '0';
@@ -222,14 +233,15 @@ begin
         when idle =>
                     int_addrROM1 <= "000";
                     pulse <= '0';
-                    i <= 0;
+                    counterr := 0;
         when busca =>
-            
-            int_addrROM1 <= book(i);
+          
+            int_addrROM1 <= book(counterr);
           --  iprima <=to_unsigned(i,iprima'length);
            -- addFirst <= addFirst + (iprima);
            -- int_addrROM1 <= std_logic_vector(addFirst);
             flag <= '1';
+              
             
         
         when suma => 
@@ -258,13 +270,25 @@ begin
                   web <= '1';
                   oe7 <= '1';
         when Sumi =>
-               
-                if (i = 8) then
-                    I8 <= '1';
-                else
-                 i <= i + 1;
+              
+                 
+                 if(rising_edge(clk))then
+                 counterr := counterr +1;
                  end if;
-        
+              
+              
+        when sumi2 =>
+                   copyCounter <= counterr;
+                    if (copyCounter = 8) then
+                    I8 <= '1';
+                     counterr:=0;copyCounter <= counterr;
+                    end if;       
+
+         when comp1 =>
+                    pulse <= '1' 
+                              ;
+                    
+                    
           when others => null;      
                     
             
